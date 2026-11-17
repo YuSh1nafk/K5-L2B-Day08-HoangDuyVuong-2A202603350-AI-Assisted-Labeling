@@ -6,30 +6,30 @@
 
 | Lớp | Model + cỡ | Ngưỡng | Vì sao (dẫn `run_id` trong `model_log.csv`) |
 |---|---|---|---|
-| person / bicycle / motorbike / car / bus / truck | <<YOLO26m>> | <<theo lớp, từ threshold_sweep>> | <<>> |
-| three_wheeler | <<YOLOE-26s, prompt: ...>> | <<>> | <<>> |
+| person / bicycle / motorbike / car / bus / truck | YOLO26m | 0.1 -> 0.95 | r01 |
+| three_wheeler | yolo26-m+sam(sam2.1_b.pt) | 0.15 | r04 |
 
-- Lệnh `merge_prelabels.py` đã dùng (dán nguyên): <<>>
-- **Phiên bản SAM bạn chọn** (SAM 1 / 2.1 / 3) và lý do: <<chất lượng mask, tốc độ, RAM, quyền truy cập>>
-- Lỗi nào **không sửa được bằng đổi ngưỡng** (ví dụ tuk-tuk bị gọi `car`)? Sửa thế nào? <<>>
-- Box **điểm cao mà sai** hoặc **điểm thấp mà đúng** (ảnh nào): <<>>
+- Lệnh `merge_prelabels.py` đã dùng (dán nguyên): python scripts/merge_prelabels.py work/prelabel/yoloe_all/pre.coco.json work/prelabel/y26_all/pre.coco.json --thr "person=0.35,motorbike=0.5,car=0.35" --conf 0.3 --iou 0.6 --split "batch,gold" --out work/prelabel/merged_review/pre.coco.json
+- **Phiên bản SAM bạn chọn** SAM 1 2.1  và lý do: chất lượng mask, tốc độ, RAM 16GB, quyền truy cập
+- Lỗi nào **không sửa được bằng đổi ngưỡng** (ví dụ tuk-tuk bị gọi `car`)? Sửa thế nào? re-label
+- Box **điểm cao mà sai** hoặc **điểm thấp mà đúng** (ảnh nào):
 - Giới hạn: chọn ngưỡng trên chính gold (4 ảnh) nên số đo máy trên gold là lạc quan: <<>>
 
 ## 2. AI error profile (từ `qc/review_stats.md`)
 
 | Trạng thái | Số | Tỉ lệ | Mẫu số |
 |---|---|---|---|
-| accepted | <<>> | <<>> | <<box máy>> |
-| edited | <<>> | <<>> | <<>> |
-| deleted | <<>> | <<>> | <<>> |
-| added | <<>> | <<>> | <<đối tượng sau duyệt>> |
+| accepted |  434 | 434/434 = 100.0% | 434 box máy |
+| edited | 0 | 0/434 = 0.0% | 434 box máy  |
+| deleted | 0 | 0/434 = 0.0% | 434 box máy |
+| added | 0 | 0/434 = 0.0% | 434 đối tượng sau duyệt |
 
-- Lớp nào máy tệ nhất? Vì sao (dẫn ảnh)? <<>>
-- So với gold: precision / recall của **máy** <<>> (mẫu số: <<đối tượng gold>>)
+- Lớp nào máy tệ nhất? Vì sao (dẫn ảnh)? 
+- So với gold: precision 
 
 ## 3. Thiên kiến tự động hóa và ảnh bẫy
 
-- Bắt bẫy: <<.../12>>; loại nào lọt: <<>>; vì sao (bạn đã bỏ bước nào của checklist)? <<>>
+- Bắt bẫy: 0/12
 - Accepted cao mà bắt bẫy thấp (hoặc ngược lại) nói gì về cách bạn duyệt? <<>>
 
 ## 4. Máy có đáng dùng không?
@@ -45,16 +45,19 @@
 
 | Ảnh | SAM (phiên bản) | Số click | Mask gồm người lái / hàng hoá? | Lỗi quan sát | File trong `masks/` |
 |---|---|---|---|---|---|
-| <<img_0xx>> | <<>> | <<>> | <<>> | <<>> | <<>> |
+| tuktuk_img017_sam2.jpg | sam2 | <<>> | 1 | vẫn bị hổng và xước box, chưa bao quát hết được xe | tuktuk_img017_sam2.jpg |
+| tuktuk_img013_sam2.jpg | sam2 | <<>> | 1 | label xe tuk tuk bị lan sang person | tuktuk_img013_sam2.jpg |
+| tuktuk_img013_sam1.jpg | sam1 | <<>> | 1 | label xe vẫn chưa bao hết được, 1 số chỗ trên person bị dnh label từ xe | tuktuk_img013_sam1.jpg |
+| tuktuk_img004_sam2.jpg | sam2 | <<>> | 1 | box bị thừa ra 1 chút, khá ổn | tuktuk_img004_sam2.jpg |
 
 - Đối chiếu guideline mục 4.2: quy tắc nào giúp, quy tắc nào thiếu? <<>>
 - *(Tuỳ chọn)* Interactor SAM trong CVAT: làm được / không (lỗi gì, đã thử gì); khác gì offline: <<>>
 
 ## 6. Calibration (Part 6)
 
-- Số quyết định: <<>> (`calibration_decisions.csv`); quan trọng nhất (dẫn `CAL-xx`): <<>>
-- Quy tắc mới đã vào `guideline_v1.1_calibrated.md`: <<>>
-- Nguyên nhân gốc: <<guideline mơ hồ / chưa nắm quy tắc / máy>>
+- Số quyết định:  (`calibration_decisions.csv`); quan trọng nhất (dẫn `CAL-xx`): CAL-1
+- Quy tắc mới đã vào `guideline_v1.1_calibrated.md`: không
+- Nguyên nhân gốc: chưa nắm quy tắc
 
 ## 7. QC và quyết định (Part 6)
 
@@ -69,9 +72,9 @@ Nếu Rework / Hold, việc cần làm tiếp: <<>>
 
 ## 8. Ghi chú cá nhân
 
-- **Dùng AI để làm bài** (công cụ nào, việc gì, kiểm tra thế nào; "không dùng" nếu không): <<>>
-- Gold có bị nhiễm không (bạn có nhìn pre-label hay hỏi AI trước khi gán xong)? <<không / có, như sau: ...>>
-- Máy / GPU / CVAT dùng; vướng mắc cài đặt: <<>>
-- Dùng cache `data/cache/` thay vì tự chạy? <<không / có, vì ...>>
-- Lỗi / bug script đã gặp (nếu có): <<>>
-- Một điều bạn làm khác lần sau: <<>>
+- **Dùng AI để làm bài** (công cụ nào, việc gì, kiểm tra thế nào; "không dùng" nếu không): không
+- Gold có bị nhiễm không (bạn có nhìn pre-label hay hỏi AI trước khi gán xong)? không
+- Máy / GPU / CVAT dùng; vướng mắc cài đặt: không
+- Dùng cache `data/cache/` thay vì tự chạy? không
+- Lỗi / bug script đã gặp (nếu có): có nhưng labcoach đã giải quyết
+- Một điều bạn làm khác lần sau:
